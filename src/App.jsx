@@ -45,7 +45,6 @@ export default function App() {
       canvas.height = height;
       ctx.clearRect(0, 0, width, height);
 
-      // Draw base (fit)
       ctx.drawImage(base, 0, 0, width, height);
 
       overlay.onload = () => {
@@ -89,63 +88,55 @@ export default function App() {
       const canvas = canvasRef.current;
       const link = document.createElement("a");
       link.download = `image-${mode}.png`;
-      link.href = canvas.toDataURL();
+      link.href = canvas.toDataURL("image/png");
       link.click();
     }, 300);
   };
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 20, maxWidth: 500 }}>
       <h1>Apple Watch Overlay Tool</h1>
 
-      <div>
-        <p>Upload Background:</p>
-        <input type="file" onChange={(e) => handleImageUpload(e, setBaseImage)} />
-      </div>
+      <input type="file" onChange={(e) => handleImageUpload(e, setBaseImage)} />
+      <input type="file" onChange={(e) => handleImageUpload(e, setOverlayImage)} />
 
-      <div>
-        <p>Upload Watch Screenshot:</p>
-        <input type="file" onChange={(e) => handleImageUpload(e, setOverlayImage)} />
-      </div>
+      <p>Size</p>
+      <input
+        type="range"
+        min="50"
+        max="500"
+        value={overlaySize}
+        onChange={(e) => setOverlaySize(Number(e.target.value))}
+      />
 
-      <div>
-        <p>Overlay Size</p>
-        <input
-          type="range"
-          min="50"
-          max="500"
-          value={overlaySize}
-          onChange={(e) => setOverlaySize(Number(e.target.value))}
-        />
-      </div>
+      <p>X: {position.x}</p>
+      <input
+        type="range"
+        min="0"
+        max="800"
+        value={position.x}
+        onChange={(e) => setPosition({ ...position, x: Number(e.target.value) })}
+      />
 
-      <div>
-        <p>X Position: {position.x}</p>
-        <input
-          type="range"
-          min="0"
-          max="800"
-          value={position.x}
-          onChange={(e) => setPosition({ ...position, x: Number(e.target.value) })}
-        />
-
-        <p>Y Position: {position.y}</p>
-        <input
-          type="range"
-          min="0"
-          max="800"
-          value={position.y}
-          onChange={(e) => setPosition({ ...position, y: Number(e.target.value) })}
-        />
-      </div>
+      <p>Y: {position.y}</p>
+      <input
+        type="range"
+        min="0"
+        max="800"
+        value={position.y}
+        onChange={(e) => setPosition({ ...position, y: Number(e.target.value) })}
+      />
 
       <div style={{ marginTop: 10 }}>
-        <button onClick={() => downloadImage("original")}>Download Original</button>
-        <button onClick={() => downloadImage("square")}>Download Square</button>
-        <button onClick={() => downloadImage("instagram")}>For Instagram (4:5)</button>
+        <button onClick={() => downloadImage("original")}>Original</button>
+        <button onClick={() => downloadImage("square")}>Square</button>
+        <button onClick={() => downloadImage("instagram")}>Instagram</button>
       </div>
 
-      <canvas ref={canvasRef} style={{ border: "1px solid black", marginTop: 20 }} />
+      <canvas
+        ref={canvasRef}
+        style={{ border: "1px solid black", marginTop: 20, width: "100%" }}
+      />
     </div>
   );
 }
