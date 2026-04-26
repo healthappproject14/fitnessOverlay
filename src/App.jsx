@@ -18,6 +18,8 @@ export default function App() {
 
   const drawCanvas = (mode = "original") => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const ctx = canvas.getContext("2d");
 
     const base = new Image();
@@ -43,8 +45,8 @@ export default function App() {
 
       canvas.width = width;
       canvas.height = height;
-      ctx.clearRect(0, 0, width, height);
 
+      ctx.clearRect(0, 0, width, height);
       ctx.drawImage(base, 0, 0, width, height);
 
       overlay.onload = () => {
@@ -79,11 +81,14 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (baseImage && overlayImage) drawCanvas();
+    if (baseImage && overlayImage) {
+      drawCanvas();
+    }
   }, [position, overlaySize, baseImage, overlayImage]);
 
   const downloadImage = (mode) => {
     drawCanvas(mode);
+
     setTimeout(() => {
       const canvas = canvasRef.current;
       const link = document.createElement("a");
@@ -97,8 +102,15 @@ export default function App() {
     <div style={{ padding: 20, maxWidth: 500 }}>
       <h1>Apple Watch Overlay Tool</h1>
 
-      <input type="file" onChange={(e) => handleImageUpload(e, setBaseImage)} />
-      <input type="file" onChange={(e) => handleImageUpload(e, setOverlayImage)} />
+      <div>
+        <p>Upload Background</p>
+        <input type="file" onChange={(e) => handleImageUpload(e, setBaseImage)} />
+      </div>
+
+      <div>
+        <p>Upload Watch Screenshot</p>
+        <input type="file" onChange={(e) => handleImageUpload(e, setOverlayImage)} />
+      </div>
 
       <p>Size</p>
       <input
