@@ -74,3 +74,78 @@ export default function App() {
         ctx.clip();
 
         ctx.drawImage(overlay, x, y, size, size);
+        ctx.restore();
+      };
+    };
+  };
+
+  useEffect(() => {
+    if (baseImage && overlayImage) drawCanvas();
+  }, [position, overlaySize, baseImage, overlayImage]);
+
+  const downloadImage = (mode) => {
+    drawCanvas(mode);
+    setTimeout(() => {
+      const canvas = canvasRef.current;
+      const link = document.createElement("a");
+      link.download = `image-${mode}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    }, 300);
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>Apple Watch Overlay Tool</h1>
+
+      <div>
+        <p>Upload Background:</p>
+        <input type="file" onChange={(e) => handleImageUpload(e, setBaseImage)} />
+      </div>
+
+      <div>
+        <p>Upload Watch Screenshot:</p>
+        <input type="file" onChange={(e) => handleImageUpload(e, setOverlayImage)} />
+      </div>
+
+      <div>
+        <p>Overlay Size</p>
+        <input
+          type="range"
+          min="50"
+          max="500"
+          value={overlaySize}
+          onChange={(e) => setOverlaySize(Number(e.target.value))}
+        />
+      </div>
+
+      <div>
+        <p>X Position: {position.x}</p>
+        <input
+          type="range"
+          min="0"
+          max="800"
+          value={position.x}
+          onChange={(e) => setPosition({ ...position, x: Number(e.target.value) })}
+        />
+
+        <p>Y Position: {position.y}</p>
+        <input
+          type="range"
+          min="0"
+          max="800"
+          value={position.y}
+          onChange={(e) => setPosition({ ...position, y: Number(e.target.value) })}
+        />
+      </div>
+
+      <div style={{ marginTop: 10 }}>
+        <button onClick={() => downloadImage("original")}>Download Original</button>
+        <button onClick={() => downloadImage("square")}>Download Square</button>
+        <button onClick={() => downloadImage("instagram")}>For Instagram (4:5)</button>
+      </div>
+
+      <canvas ref={canvasRef} style={{ border: "1px solid black", marginTop: 20 }} />
+    </div>
+  );
+}
