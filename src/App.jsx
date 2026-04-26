@@ -5,7 +5,6 @@ export default function App() {
   const [overlayImage, setOverlayImage] = useState(null);
   const [overlaySize, setOverlaySize] = useState(200);
   const [position, setPosition] = useState({ x: 50, y: 50 });
-  const [dragging, setDragging] = useState(false);
   const canvasRef = useRef(null);
 
   const handleImageUpload = (e, setImage) => {
@@ -17,7 +16,7 @@ export default function App() {
     }
   };
 
-  const drawCanvas = () => {
+  const drawCanvas = (mode = "original") => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
@@ -28,10 +27,26 @@ export default function App() {
     overlay.src = overlayImage;
 
     base.onload = () => {
-      canvas.width = base.width;
-      canvas.height = base.height;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(base, 0, 0);
+      let width = base.width;
+      let height = base.height;
+
+      if (mode === "square") {
+        const size = Math.min(width, height);
+        width = size;
+        height = size;
+      }
+
+      if (mode === "instagram") {
+        width = 1080;
+        height = 1350;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw base (fit)
+      ctx.drawImage(base, 0, 0, width, height);
 
       overlay.onload = () => {
         const x = position.x;
@@ -59,88 +74,3 @@ export default function App() {
         ctx.clip();
 
         ctx.drawImage(overlay, x, y, size, size);
-        ctx.restore();
-      };
-    };
-  };
-
-  useEffect(() => {
-    if (baseImage && overlayImage) drawCanvas();
-  }, [position, overlaySize, baseImage, overlayImage]);
-
-  const getPointerPos = (e) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-
-    if (e.touches) {
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top,
-      };
-    }
-
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  };
-
-  const handleDown = (e) => {
-    const pos = getPointerPos(e);
-    if (
-      pos.x >= position.x &&
-      pos.x <= position.x + overlaySize &&
-      pos.y >= position.y &&
-      pos.y <= position.y + overlaySize
-    ) {
-      setDragging(true);
-    }
-  };
-
-  const handleMove = (e) => {
-    if (!dragging) return;
-    const pos = getPointerPos(e);
-    setPosition({ x: pos.x - overlaySize / 2, y: pos.y - overlaySize / 2 });
-  };
-
-  const handleUp = () => setDragging(false);
-
-  const downloadImage = () => {
-    const canvas = canvasRef.current;
-    const link = document.createElement("a");
-    link.download = "combined-image.png";
-    link.href = canvas.toDataURL();
-    link.click();
-  };
-
-  return (
-    <div style={{ padding: 20 }}>
-      <h1>Apple Watch Overlay Tool</h1>
-
-      <input type="file" onChange={(e) => handleImageUpload(e, setBaseImage)} />
-      <input type="file" onChange={(e) => handleImageUpload(e, setOverlayImage)} />
-
-      <input
-        type="range"
-        min="50"
-        max="500"
-        value={overlaySize}
-        onChange={(e) => setOverlaySize(Number(e.target.value))}
-      />
-
-      <button onClick={downloadImage}>Download</button>
-
-      <canvas
-        ref={canvasRef}
-        style={{ border: "1px solid black", marginTop: 20 }}
-        onMouseDown={handleDown}
-        onMouseMove={handleMove}
-        onMouseUp={handleUp}
-        onMouseLeave={handleUp}
-        onTouchStart={handleDown}
-        onTouchMove={handleMove}
-        onTouchEnd={handleUp}
-      />
-    </div>
-  );
-}
